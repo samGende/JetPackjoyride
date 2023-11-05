@@ -1,5 +1,6 @@
 import numpy as np
 import pygame
+import pygame.surfarray as surfarray
 from random import randint
 
 import gymnasium as gym
@@ -44,7 +45,6 @@ class JetPackEnv(gym.Env):
             (len(self.hall[0]) * self.cell_size, len(self.hall) * self.cell_size))
 
         # code from gym tutorial
-        print(render_mode)
         # assert render_mode is None or render_mode in self.metadata["render_modes"]
         self.render_mode = render_mode
 
@@ -94,7 +94,8 @@ class JetPackEnv(gym.Env):
 
     def render(self):
         if self.render_mode == "rgb_array":
-            return self._render_frame
+            print("calling frame")
+            return self._render_frame()
 
     def close(self):
         if self.screen is not None:
@@ -128,10 +129,10 @@ class JetPackEnv(gym.Env):
 
         if (self.render_mode == "human"):
             pygame.display.update()
-        else:
-            return np.transpose(
-                np.array(pygame.surfarray.pixels3d(self.screen)), axes=(1, 0, 2)
-            )
+
+        return np.transpose(
+            np.array(pygame.surfarray.pixels3d(self.screen)), axes=(1, 0, 2)
+        )
 
     def _calc_reward(self):
         reward = 0

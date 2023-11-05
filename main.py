@@ -1,6 +1,7 @@
 import gymnasium as gym
 import pygame
 from gymnasium.utils.play import play
+from gymnasium.utils.env_checker import check_env
 
 from jetPackjoyRideEnv import JetPackEnv
 
@@ -19,13 +20,12 @@ hall = [
     ['.', '.', '.', 'C'],
 ]
 
-env = gym.make('JetPack-v0', hall=hall, render_mode="human")
-
+env = gym.make('JetPack-v0', hall=hall, render_mode="rgb_array")
 env.reset()
 
+gym.utils.play.play(env, fps=1, keys_to_action={' ': 1}, noop=0)
 
-# gym.utils.play.play(env, fps=1, keys_to_action={" ": 1}, noop=0)
-
+"""
 env.render()
 for i in range(0, 10):
     pygame.event.get()
@@ -38,3 +38,4 @@ for i in range(0, 10):
 
 print(observation)
 print(reward)
+"""
