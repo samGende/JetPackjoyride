@@ -52,7 +52,11 @@ class JetPackEnv(gym.Env):
 
         original_image = pygame.image.load(
             'Barry_Steakfries.webp').convert_alpha()
+        original_coin_image = pygame.image.load(
+            'Coin2.webp').convert_alpha()
 
+        self.coin_sprite = pygame.transform.scale(
+            original_coin_image, (24, 24))
         self.sprite_sheet_image = pygame.transform.scale(
             original_image, (24, 24))
 
@@ -121,8 +125,8 @@ class JetPackEnv(gym.Env):
 
         # draw coins
         for coin in self.coins:
-            pygame.draw.rect(
-                self.screen, (255, 255, 0), (coin[1] * self.cell_size, coin[0] * self.cell_size, self.cell_size, self.cell_size))
+            self.screen.blit(self.coin_sprite,
+                             ((coin[1] - 1)*self.cell_size, (coin[0]-1) * self.cell_size))
 
         # draw obstacles
         for obstacle in self.obstacles:
