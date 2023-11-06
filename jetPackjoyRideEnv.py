@@ -50,6 +50,12 @@ class JetPackEnv(gym.Env):
         self.font = pygame.font.SysFont(None, 48)
         self.img = self.font.render(f'Score {self.score}', True, (255, 0, 0))
 
+        original_image = pygame.image.load(
+            'Barry_Steakfries.webp').convert_alpha()
+
+        self.sprite_sheet_image = pygame.transform.scale(
+            original_image, (24, 24))
+
         # code from gym tutorial
         # assert render_mode is None or render_mode in self.metadata["render_modes"]
         self.render_mode = render_mode
@@ -123,16 +129,9 @@ class JetPackEnv(gym.Env):
             pygame.draw.rect(
                 self.screen, (0, 0, 0), (obstacle[1] * self.cell_size, obstacle[0] * self.cell_size, self.cell_size, self.cell_size))
 
-        for row in range(len(self.hall)):
-            for col in range(len(self.hall[0])):
-                cell_left = col * self.cell_size
-                cell_top = row * self.cell_size
-
-                # draw berry
-                if (np.array_equal([row, col], self.current_barry_pos)):
-                    pygame.draw.rect(
-                        self.screen, (210, 180, 140), (cell_left, cell_top, self.cell_size, self.cell_size))
-
+        # draw berry w sprite
+        self.screen.blit(self.sprite_sheet_image,
+                         ((self.current_barry_pos[1] - 1)*self.cell_size, (self.current_barry_pos[0]-1) * self.cell_size))
         if (self.render_mode == "human"):
             pygame.display.update()
 
