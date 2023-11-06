@@ -8,7 +8,7 @@ from gymnasium import spaces
 
 
 maze = [
-    ['.', '', '.', '.'],
+    ['.', '.', '.', '.'],
     ['.', '.', '.', 'O'],
     ['.', '.', '.', '.'],
     ['B', '.', '.', 'C'],
@@ -18,13 +18,15 @@ maze = [
 class JetPackEnv(gym.Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
 
-    def __init__(self, hall, render_mode=None):
-        self.hall = np.array(hall)
-        # argwhere()[0] finds where elements are located in grid and returns coordinates in [x,y] shape
-        self.start_pos = np.argwhere(self.hall == "B")[0]
-        self.obstacle_pos = np.argwhere(self.hall == "O")[0]
-        self.coin_pos = np.argwhere(self.hall == "C")[0]
-        self.current_barry_pos = self.start_pos
+    def __init__(self, render_mode=None):
+        self.hall = np.zeros((64, 64))
+        self.start_pos = [0, 0]
+        self.obstacle_pos = self.coin_pos = self.current_barry_pos = self.start_pos
+        # list of obstacles and coins first in the list will be observed
+        self.coins = [[randint(0, len(self.hall)-1),  len(self.hall[1])]]
+        self.obstacles = [[randint(0, len(self.hall)-1),  len(self.hall[1])]]
+        self.coin_pos = self.coins[0]
+        self.obstacle_pos = self.obstacles[0]
 
         # 0= jetpack off 1 = jetpack on
         self.action_space = spaces.Discrete(2)
@@ -40,7 +42,7 @@ class JetPackEnv(gym.Env):
         )
 
         pygame.init()
-        self.cell_size = 125
+        self.cell_size = 8
         self.screen = pygame.display.set_mode(
             (len(self.hall[0]) * self.cell_size, len(self.hall) * self.cell_size))
 
@@ -94,7 +96,6 @@ class JetPackEnv(gym.Env):
 
     def render(self):
         if self.render_mode == "rgb_array":
-            print("calling frame")
             return self._render_frame()
 
     def close(self):
@@ -104,23 +105,21 @@ class JetPackEnv(gym.Env):
 
     def _render_frame(self):
         self.screen.fill((128, 128, 128))
+
+        # draw coins
+        for coin in self.coins:
+            pygame.draw.rect(
+                self.screen, (255, 255, 0), (coin[1] * self.cell_size, coin[0] * self.cell_size, self.cell_size, self.cell_size))
+
+        # draw obstacles
+        for obstacle in self.obstacles:
+            pygame.draw.rect(
+                self.screen, (0, 0, 0), (obstacle[1] * self.cell_size, obstacle[0] * self.cell_size, self.cell_size, self.cell_size))
+
         for row in range(len(self.hall)):
             for col in range(len(self.hall[0])):
                 cell_left = col * self.cell_size
                 cell_top = row * self.cell_size
-
-                # draw background
-                if (self.hall[row, col] == '.'):
-                    pygame.draw.rect(
-                        self.screen, (128, 128, 128), (cell_left, cell_top, self.cell_size, self.cell_size))
-                # draw coin
-                if np.array_equal([row, col], self.coin_pos):
-                    pygame.draw.rect(
-                        self.screen, (255, 255, 0), (cell_left, cell_top, self.cell_size, self.cell_size))
-                # draw obstacle
-                elif np.array_equal([row, col], self.obstacle_pos):
-                    pygame.draw.rect(
-                        self.screen, (0, 0, 0), (cell_left, cell_top, self.cell_size, self.cell_size))
 
                 # draw berry
                 if (np.array_equal([row, col], self.current_barry_pos)):
@@ -145,16 +144,42 @@ class JetPackEnv(gym.Env):
         return reward, done
 
     def _update_coin_postion(self):
-        self.coin_pos[1] -= 1
+        for coin in self.coins:
+            coin[1] -= 1
+        self.coin_pos = self.coins[0]
         if (self.coin_pos[1] < 0):
-            self.coin_pos[1] = len(self.hall[1])
-            self.coin_pos[0] = randint(0, len(self.hall)-1)
+            self.coins.pop(0)
+            self.coins.append(
+                [randint(0, len(self.hall)-1), len(self.hall[1])])
+            self.coin_pos = self.coins[0]
+        if (len(self.coins) < 10):
+            self._gen_new_coin()
+
+        print(len(self.coins))
+
+    def _gen_new_coin(self):
+        newCoin = randint(1, 4)
+        if (newCoin == 1):
+            self.coins.append(
+                [randint(0, len(self.hall)-1), len(self.hall[1])])
 
     def _update_obstacle_position(self):
-        self.obstacle_pos[1] -= 1
+        for obstacle in self.obstacles:
+            obstacle[1] -= 1
+        self.obstacle_pos = self.obstacles[0]
         if (self.obstacle_pos[1] < 0):
-            self.obstacle_pos[1] = len(self.hall[1])
-            self.obstacle_pos[0] = randint(0, len(self.hall)-1)
+            self.obstacles.pop(0)
+            self.obstacles.append(
+                [randint(0, len(self.hall)-1), len(self.hall[1])])
+            self.obstacle_pos = self.obstacles[0]
+        if (len(self.obstacles) < 10):
+            self._generate_obstacles()
+
+    def _generate_obstacles(self):
+        newObstacle = randint(1, 4)
+        if (newObstacle == 1):
+            self.obstacles.append(
+                [randint(0, len(self.hall)-1), len(self.hall[1])])
 
     def _is_valid_position(self, postition):
         if (postition[0] > len(self.hall)-1 or postition[0] < 0):

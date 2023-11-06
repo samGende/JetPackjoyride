@@ -8,9 +8,8 @@ from jetPackjoyRideEnv import JetPackEnv
 
 # Register the environment
 gym.register(
-    id='JetPack-v0',
+    id='JetPack-v1',
     entry_point='jetPackjoyRideEnv:JetPackEnv',
-    kwargs={'hall': None}
 )
 
 hall = [
@@ -20,10 +19,10 @@ hall = [
     ['.', '.', '.', 'C'],
 ]
 
-env = gym.make('JetPack-v0', hall=hall, render_mode="rgb_array")
+env = gym.make('JetPack-v1', render_mode="rgb_array")
 env.reset()
 
-gym.utils.play.play(env, fps=1, keys_to_action={' ': 1}, noop=0)
+gym.utils.play.play(env, fps=24, keys_to_action={' ': 1}, noop=0)
 
 """
 env.render()
