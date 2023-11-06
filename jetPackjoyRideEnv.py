@@ -26,6 +26,7 @@ class JetPackEnv(gym.Env):
         self.coins = [[randint(0, len(self.hall)-1),  len(self.hall[1])]]
         self.obstacles = [[randint(0, len(self.hall)-1),  len(self.hall[1])]]
         self.coin_pos = self.coins[0]
+        self.score = 0
         self.obstacle_pos = self.obstacles[0]
 
         # 0= jetpack off 1 = jetpack on
@@ -46,6 +47,9 @@ class JetPackEnv(gym.Env):
         self.screen = pygame.display.set_mode(
             (len(self.hall[0]) * self.cell_size, len(self.hall) * self.cell_size))
 
+        self.font = pygame.font.SysFont(None, 48)
+        self.img = self.font.render(f'Score {self.score}', True, (255, 0, 0))
+
         # code from gym tutorial
         # assert render_mode is None or render_mode in self.metadata["render_modes"]
         self.render_mode = render_mode
@@ -65,6 +69,8 @@ class JetPackEnv(gym.Env):
         super().reset(seed=seed)
         # return barry to start / floor
         self.current_barry_pos = self.start_pos
+        self.score = 0
+        self.img = self.font.render(f'Score {self.score}', True, (255, 0, 0))
 
         # calc random vals for coin and obstacle
 
@@ -105,6 +111,7 @@ class JetPackEnv(gym.Env):
 
     def _render_frame(self):
         self.screen.fill((128, 128, 128))
+        self.screen.blit(self.img, (20, 20))
 
         # draw coins
         for coin in self.coins:
@@ -138,10 +145,16 @@ class JetPackEnv(gym.Env):
         done = False
         if (np.array_equiv(self.current_barry_pos, self.coin_pos)):
             reward = 1
+            self._update_score()
+
         if (np.array_equiv(self.current_barry_pos, self.obstacle_pos)):
             reward = -5
             done = True
         return reward, done
+
+    def _update_score(self):
+        self.score += 1
+        self.img = self.font.render(f'Score {self.score}', True, (255, 0, 0))
 
     def _update_coin_postion(self):
         for coin in self.coins:
@@ -154,8 +167,6 @@ class JetPackEnv(gym.Env):
             self.coin_pos = self.coins[0]
         if (len(self.coins) < 10):
             self._gen_new_coin()
-
-        print(len(self.coins))
 
     def _gen_new_coin(self):
         newCoin = randint(1, 4)
