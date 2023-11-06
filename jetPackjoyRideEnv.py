@@ -20,7 +20,7 @@ class JetPackEnv(gym.Env):
 
     def __init__(self, render_mode=None):
         self.hall = np.zeros((64, 64))
-        self.start_pos = [0, 0]
+        self.start_pos = [len(self.hall)-1, 0]
         self.obstacle_pos = self.coin_pos = self.current_barry_pos = self.start_pos
         # list of obstacles and coins first in the list will be observed
         self.coins = [[randint(0, len(self.hall)-1),  len(self.hall[1])]]
