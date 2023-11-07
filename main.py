@@ -21,6 +21,7 @@ hall = [
 
 env = gym.make('JetPack-v1', render_mode="rgb_array")
 env.reset()
+# gym.utils.env_checker.check_env(env)
 
 gym.utils.play.play(env, fps=24, keys_to_action={' ': 1}, noop=0)
 

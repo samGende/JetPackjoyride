@@ -23,10 +23,9 @@ class JetPackEnv(gym.Env):
         self.start_pos = [len(self.hall)-1, 0]
         self.current_barry_pos = self.start_pos
         # list of obstacles and coins first in the list will be observed
-        self.coins = [[self.np_random.uniform(
-            0, len(self.hall)-1),  len(self.hall[1])]]
-        self.obstacles = [[self.np_random.uniform(
-            0, len(self.hall)-1),  len(self.hall[1])]]
+        self.coins = [[self.np_random.integers(
+            0, len(self.hall)),  len(self.hall[1])]]
+        self.obstacles = [self._gen_obstacle()]
         self.obstacle_pos = self.obstacles[0]
         self.coin_pos = self.coins[0]
         self.coin_pos = self.coins[0]
@@ -39,6 +38,9 @@ class JetPackEnv(gym.Env):
         low = np.array([0, 0])  # Minimum coordinates in each dimension
         # Maximum coordinates in each dimension
         high = np.array([len(self.hall)-1, len(self.hall)-1])
+        obstacle_low = np.array([low, low, low])
+        obstacle_high = np.array(
+            [high, [high[0], high[1] + 1], [high[0], high[1] + 2]])
 
         # initially only one coin and obstacle eventually more
         self.observation_space = spaces.Dict(
@@ -46,7 +48,7 @@ class JetPackEnv(gym.Env):
                 "barry": spaces.Box(low, high, dtype=int),
                 "coin": spaces.Box(low,  high, dtype=int),
                 # obstacle should actually take up 3 units
-                "obstacle": spaces.Box(low, high, dtype=int)
+                "obstacle": spaces.Box(obstacle_low, obstacle_high, shape=(3, 2), dtype=int)
             }
         )
 
@@ -87,12 +89,10 @@ class JetPackEnv(gym.Env):
         super().reset(seed=seed)
         # return barry to start / floor
         self.current_barry_pos = self.start_pos
-        self.coins = [[self.np_random.uniform(
-            0, len(self.hall)-1),  len(self.hall[1]) - 1]]
-        self.obstacles = [
-            [self.np_random.uniform(0, len(self.hall)-1),  len(self.hall[1])-1]]
+        self.coins = [[self.np_random.integers(
+            0, len(self.hall)),  len(self.hall[1]) - 1]]
+        self.obstacles = [self._gen_obstacle()]
         self.obstacle_pos = self.obstacles[0]
-        self.coin_pos = self.coins[0]
         self.coin_pos = self.coins[0]
 
         self.score = 0
@@ -146,8 +146,9 @@ class JetPackEnv(gym.Env):
 
         # draw obstacles
         for obstacle in self.obstacles:
-            pygame.draw.rect(
-                self.screen, (0, 0, 0), (obstacle[1] * self.cell_size, obstacle[0] * self.cell_size, self.cell_size, self.cell_size))
+            for block in obstacle:
+                pygame.draw.rect(self.screen, (0, 0, 0), (
+                    block[1] * self.cell_size, block[0] * self.cell_size, self.cell_size, self.cell_size))
 
         # draw berry w sprite
         self.screen.blit(self.sprite_sheet_image,
@@ -166,9 +167,10 @@ class JetPackEnv(gym.Env):
             reward = 1
             self._update_score()
 
-        if (np.array_equiv(self.current_barry_pos, self.obstacle_pos)):
-            reward = -5
-            done = True
+        for block in self.obstacle_pos:
+            if (np.array_equiv(self.current_barry_pos, block)):
+                reward = -5
+                done = True
         return reward, done
 
     def _update_score(self):
@@ -182,7 +184,7 @@ class JetPackEnv(gym.Env):
         if (self.coin_pos[1] < 0):
             self.coins.pop(0)
             self.coins.append(
-                [randint(0, len(self.hall)-1), len(self.hall[1])])
+                [self.np_random.integers(0, len(self.hall)), len(self.hall[1])])
             self.coin_pos = self.coins[0]
         if (len(self.coins) < 10):
             self._gen_new_coin()
@@ -191,16 +193,16 @@ class JetPackEnv(gym.Env):
         newCoin = randint(1, 4)
         if (newCoin == 1):
             self.coins.append(
-                [randint(0, len(self.hall)-1), len(self.hall[1])])
+                [self.np_random.integers(0, len(self.hall)), len(self.hall[1])])
 
     def _update_obstacle_position(self):
         for obstacle in self.obstacles:
-            obstacle[1] -= 1
+            for block in obstacle:
+                block[1] -= 1
         self.obstacle_pos = self.obstacles[0]
-        if (self.obstacle_pos[1] < 0):
+        if (self.obstacle_pos[2][1] < 0):
             self.obstacles.pop(0)
-            self.obstacles.append(
-                [randint(0, len(self.hall)-1), len(self.hall[1])])
+            self.obstacles.append(self._gen_obstacle())
             self.obstacle_pos = self.obstacles[0]
         if (len(self.obstacles) < 10):
             self._generate_obstacles()
@@ -209,7 +211,7 @@ class JetPackEnv(gym.Env):
         newObstacle = randint(1, 4)
         if (newObstacle == 1):
             self.obstacles.append(
-                [randint(0, len(self.hall)-1), len(self.hall[1])])
+                self._gen_obstacle())
 
     def _is_valid_position(self, postition):
         if (postition[0] > len(self.hall)-1 or postition[0] < 0):
@@ -222,5 +224,39 @@ class JetPackEnv(gym.Env):
         obs = {"barry": np.array(self.current_barry_pos, dtype=int),
                "coin": np.array(self.coin_pos, dtype=int),
                "obstacle": np.array(self.obstacle_pos, dtype=int)}
-       # print(obs)
         return obs
+
+    def _gen_obstacle(self):
+        type = self.np_random.integers(0, 4)
+        # list of 3 coordinates of the obstacle
+        obstacle = []
+        if (type == 0):
+            print("horizontal line")
+            # the rightmost part of the obstacle
+            obstacle.append(
+                [self.np_random.integers(0, len(self.hall)), len(self.hall[1])-1])
+            obstacle.append([obstacle[0][0], obstacle[0][1] + 1])
+            obstacle.append([obstacle[0][0], obstacle[0][1] + 2])
+
+        if (type == 1):
+            print("vertical line")
+            obstacle.append(
+                [self.np_random.integers(1, len(self.hall)-1), len(self.hall[1])-1])
+            obstacle.append([obstacle[0][0]-1, obstacle[0][1]])
+            obstacle.append([obstacle[0][0]+1, obstacle[0][1]])
+
+        if (type == 2):
+            print("diagnal right")
+            obstacle.append(
+                [self.np_random.integers(1, len(self.hall)-1), len(self.hall[1])-1])
+            obstacle.append([obstacle[0][0]-1, obstacle[0][1]+1])
+            obstacle.append([obstacle[0][0]+1, obstacle[0][1]-1])
+
+        if (type == 3):
+            print("diagnal left")
+            obstacle.append(
+                [self.np_random.integers(1, len(self.hall)-1), len(self.hall[1])-1])
+            obstacle.append([obstacle[0][0]-1, obstacle[0][1]-1])
+            obstacle.append([obstacle[0][0]+1, obstacle[0][1]+1])
+
+        return obstacle
