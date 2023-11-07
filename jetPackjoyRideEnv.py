@@ -107,11 +107,13 @@ class JetPackEnv(gym.Env):
 
     def step(self, action):
         new_barry_pos = np.array(self.current_barry_pos)
+        # jetpack not on
         if (action == 1):
             new_barry_pos[0] -= 1
+        # jetpack is on
         if (action == 0):
             new_barry_pos[0] += 1
-
+        # check if barry will fly of the screen
         if self._is_valid_position(new_barry_pos):
             self.current_barry_pos = new_barry_pos
 
@@ -157,6 +159,7 @@ class JetPackEnv(gym.Env):
             pygame.display.update()
 
         return np.transpose(
+            # return a rgb array
             np.array(pygame.surfarray.pixels3d(self.screen)), axes=(1, 0, 2)
         )
 
@@ -237,23 +240,17 @@ class JetPackEnv(gym.Env):
                 [self.np_random.integers(0, len(self.hall)), len(self.hall[1])-1])
             obstacle.append([obstacle[0][0], obstacle[0][1] + 1])
             obstacle.append([obstacle[0][0], obstacle[0][1] + 2])
-
-        if (type == 1):
-            print("vertical line")
+        elif (type == 1):
             obstacle.append(
                 [self.np_random.integers(1, len(self.hall)-1), len(self.hall[1])-1])
             obstacle.append([obstacle[0][0]-1, obstacle[0][1]])
             obstacle.append([obstacle[0][0]+1, obstacle[0][1]])
-
-        if (type == 2):
-            print("diagnal right")
+        elif (type == 2):
             obstacle.append(
                 [self.np_random.integers(1, len(self.hall)-1), len(self.hall[1])-1])
             obstacle.append([obstacle[0][0]-1, obstacle[0][1]+1])
             obstacle.append([obstacle[0][0]+1, obstacle[0][1]-1])
-
-        if (type == 3):
-            print("diagnal left")
+        elif (type == 3):
             obstacle.append(
                 [self.np_random.integers(1, len(self.hall)-1), len(self.hall[1])-1])
             obstacle.append([obstacle[0][0]-1, obstacle[0][1]-1])
