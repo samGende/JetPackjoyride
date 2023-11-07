@@ -21,10 +21,14 @@ class JetPackEnv(gym.Env):
     def __init__(self, render_mode=None):
         self.hall = np.zeros((64, 64))
         self.start_pos = [len(self.hall)-1, 0]
-        self.obstacle_pos = self.coin_pos = self.current_barry_pos = self.start_pos
+        self.current_barry_pos = self.start_pos
         # list of obstacles and coins first in the list will be observed
-        self.coins = [[randint(0, len(self.hall)-1),  len(self.hall[1])]]
-        self.obstacles = [[randint(0, len(self.hall)-1),  len(self.hall[1])]]
+        self.coins = [[self.np_random.uniform(
+            0, len(self.hall)-1),  len(self.hall[1])]]
+        self.obstacles = [[self.np_random.uniform(
+            0, len(self.hall)-1),  len(self.hall[1])]]
+        self.obstacle_pos = self.obstacles[0]
+        self.coin_pos = self.coins[0]
         self.coin_pos = self.coins[0]
         self.score = 0
         self.obstacle_pos = self.obstacles[0]
@@ -32,13 +36,17 @@ class JetPackEnv(gym.Env):
         # 0= jetpack off 1 = jetpack on
         self.action_space = spaces.Discrete(2)
 
+        low = np.array([0, 0])  # Minimum coordinates in each dimension
+        # Maximum coordinates in each dimension
+        high = np.array([len(self.hall)-1, len(self.hall)-1])
+
         # initially only one coin and obstacle eventually more
         self.observation_space = spaces.Dict(
             {
-                "barry": spaces.Box(0, len(self.hall)-1, shape=(2,), dtype=int),
-                "coin": spaces.Box(0, len(self.hall)-1, shape=(2,), dtype=int),
+                "barry": spaces.Box(low, high, dtype=int),
+                "coin": spaces.Box(low,  high, dtype=int),
                 # obstacle should actually take up 3 units
-                "obstacle": spaces.Box(0, len(self.hall)-1, shape=(2,), dtype=int)
+                "obstacle": spaces.Box(low, high, dtype=int)
             }
         )
 
@@ -79,6 +87,14 @@ class JetPackEnv(gym.Env):
         super().reset(seed=seed)
         # return barry to start / floor
         self.current_barry_pos = self.start_pos
+        self.coins = [[self.np_random.uniform(
+            0, len(self.hall)-1),  len(self.hall[1]) - 1]]
+        self.obstacles = [
+            [self.np_random.uniform(0, len(self.hall)-1),  len(self.hall[1])-1]]
+        self.obstacle_pos = self.obstacles[0]
+        self.coin_pos = self.coins[0]
+        self.coin_pos = self.coins[0]
+
         self.score = 0
         self.img = self.font.render(f'Score {self.score}', True, (255, 0, 0))
 
@@ -203,4 +219,8 @@ class JetPackEnv(gym.Env):
         return True
 
     def _get_obs(self):
-        return {"barry": self.current_barry_pos, "coin": self.coin_pos, "obstacle": self.obstacle_pos}
+        obs = {"barry": np.array(self.current_barry_pos, dtype=int),
+               "coin": np.array(self.coin_pos, dtype=int),
+               "obstacle": np.array(self.obstacle_pos, dtype=int)}
+       # print(obs)
+        return obs
