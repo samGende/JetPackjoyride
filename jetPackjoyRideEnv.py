@@ -31,6 +31,8 @@ class JetPackEnv(gym.Env):
         self.coin_pos = self.coins[0]
         self.score = 0
         self.obstacle_pos = self.obstacles[0]
+        self.distance_traveled = 0
+        self.distance_limit = 1200
 
         # 0= jetpack off 1 = jetpack on
         self.action_space = spaces.Discrete(2)
@@ -94,6 +96,7 @@ class JetPackEnv(gym.Env):
         self.obstacles = [self._gen_obstacle()]
         self.obstacle_pos = self.obstacles[0]
         self.coin_pos = self.coins[0]
+        self.distance_traveled = 0
 
         self.score = 0
         self.img = self.font.render(f'Score {self.score}', True, (255, 0, 0))
@@ -119,6 +122,7 @@ class JetPackEnv(gym.Env):
 
         self._update_coin_postion()
         self._update_obstacle_position()
+        self.distance_traveled += 1
 
         reward, done = self._calc_reward()
         observation = self._get_obs()
@@ -174,6 +178,9 @@ class JetPackEnv(gym.Env):
             if (np.array_equiv(self.current_barry_pos, block)):
                 reward = -5
                 done = True
+        if (self.distance_traveled > self.distance_limit):
+            done = True
+            print("max distance traveled")
         return reward, done
 
     def _update_score(self):
