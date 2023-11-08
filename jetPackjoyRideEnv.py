@@ -234,7 +234,6 @@ class JetPackEnv(gym.Env):
         # list of 3 coordinates of the obstacle
         obstacle = []
         if (type == 0):
-            print("horizontal line")
             # the rightmost part of the obstacle
             obstacle.append(
                 [self.np_random.integers(0, len(self.hall)), len(self.hall[1])-1])
