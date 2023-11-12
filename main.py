@@ -12,12 +12,6 @@ gym.register(
     entry_point='jetPackjoyRideEnv:JetPackEnv',
 )
 
-hall = [
-    ['.', '', '.', '.'],
-    ['B', '.', '.', 'O'],
-    ['.', '.', '.', '.'],
-    ['.', '.', '.', 'C'],
-]
 
 env = gym.make('JetPack-v1', render_mode="rgb_array")
 env.reset()

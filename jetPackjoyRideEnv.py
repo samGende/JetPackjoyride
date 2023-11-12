@@ -7,14 +7,6 @@ import gymnasium as gym
 from gymnasium import spaces
 
 
-maze = [
-    ['.', '.', '.', '.'],
-    ['.', '.', '.', 'O'],
-    ['.', '.', '.', '.'],
-    ['B', '.', '.', 'C'],
-]
-
-
 class JetPackEnv(gym.Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
 
@@ -22,7 +14,7 @@ class JetPackEnv(gym.Env):
         self.hall = np.zeros((64, 64))
         self.start_pos = [len(self.hall)-1, 0]
         self.current_barry_pos = self.start_pos
-        # list of obstacles and coins first in the list will be observed
+        # TODO change coins so that they are largers
         self.coins = [[self.np_random.integers(
             0, len(self.hall)),  len(self.hall[1])]]
         self.obstacles = [self._gen_obstacle()]
@@ -34,9 +26,6 @@ class JetPackEnv(gym.Env):
         self.distance_traveled = 0
         self.distance_limit = 1200
 
-        # 0= jetpack off 1 = jetpack on
-        self.action_space = spaces.Discrete(2)
-
         low = np.array([0, 0])  # Minimum coordinates in each dimension
         # Maximum coordinates in each dimension
         high = np.array([len(self.hall)-1, len(self.hall)-1])
@@ -45,14 +34,19 @@ class JetPackEnv(gym.Env):
             [high, [high[0], high[1] + 1], [high[0], high[1] + 2]])
 
         # initially only one coin and obstacle eventually more
+        # TODO add pixel observation space
         self.observation_space = spaces.Dict(
             {
                 "barry": spaces.Box(low, high, dtype=int),
+                # TODO add 3 coins or more can just be in the dictionary
                 "coin": spaces.Box(low,  high, dtype=int),
                 # obstacle should actually take up 3 units
+                # TODO add 3 obstacles can also just be in the dictionary
                 "obstacle": spaces.Box(obstacle_low, obstacle_high, shape=(3, 2), dtype=int)
             }
         )
+        # 0= jetpack off 1 = jetpack on
+        self.action_space = spaces.Discrete(2)
 
         pygame.init()
         self.cell_size = 8
@@ -174,7 +168,7 @@ class JetPackEnv(gym.Env):
             reward = 1
             self._update_score()
 
-        for block in self.obstacle_pos:
+        for block in self.obstacles[0]:
             if (np.array_equiv(self.current_barry_pos, block)):
                 reward = -5
                 done = True
@@ -210,7 +204,8 @@ class JetPackEnv(gym.Env):
             for block in obstacle:
                 block[1] -= 1
         self.obstacle_pos = self.obstacles[0]
-        if (self.obstacle_pos[2][1] < 0):
+        print(self.obstacles[0])
+        if (self.obstacles[0][2][1] < 0):
             self.obstacles.pop(0)
             self.obstacles.append(self._gen_obstacle())
             self.obstacle_pos = self.obstacles[0]
@@ -253,13 +248,13 @@ class JetPackEnv(gym.Env):
             obstacle.append([obstacle[0][0]+1, obstacle[0][1]])
         elif (type == 2):
             obstacle.append(
-                [self.np_random.integers(1, len(self.hall)-1), len(self.hall[1])-1])
+                [self.np_random.integers(0, len(self.hall)), len(self.hall[1])-2])
             obstacle.append([obstacle[0][0]-1, obstacle[0][1]+1])
-            obstacle.append([obstacle[0][0]+1, obstacle[0][1]-1])
+            obstacle.append([obstacle[0][0]-2, obstacle[0][1]+2])
         elif (type == 3):
             obstacle.append(
-                [self.np_random.integers(1, len(self.hall)-1), len(self.hall[1])-1])
-            obstacle.append([obstacle[0][0]-1, obstacle[0][1]-1])
+                [self.np_random.integers(0, len(self.hall)-2), len(self.hall[1])-2])
             obstacle.append([obstacle[0][0]+1, obstacle[0][1]+1])
+            obstacle.append([obstacle[0][0]+2, obstacle[0][1]+2])
 
         return obstacle
