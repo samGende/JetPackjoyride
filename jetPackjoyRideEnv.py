@@ -299,7 +299,7 @@ class JetPackEnv(gym.Env):
             obstacle.append([obstacle[0][0], obstacle[0][1]])
         elif (type == 1):
             obstacle.append(
-                [self.np_random.integers(1, len(self.hall)-1), len(self.hall[1])-1])
+                [self.np_random.integers(1, len(self.hall)-1), len(self.hall[1]) - 2])
             obstacle.append([obstacle[0][0]-1, obstacle[0][1]])
             obstacle.append([obstacle[0][0]+1, obstacle[0][1]])
             obstacle.append([obstacle[0][0], obstacle[0][1]])
@@ -308,7 +308,7 @@ class JetPackEnv(gym.Env):
             obstacle.append([obstacle[0][0], obstacle[0][1]])
         elif (type == 2):
             obstacle.append(
-                [self.np_random.integers(0, len(self.hall)), len(self.hall[1])-2])
+                [self.np_random.integers(0, len(self.hall)), len(self.hall[1])-3])
             obstacle.append([obstacle[0][0]-1, obstacle[0][1]+1])
             obstacle.append([obstacle[0][0]-2, obstacle[0][1]+2])
             obstacle.append([obstacle[0][0]-1, obstacle[0][1]+2])
@@ -317,7 +317,7 @@ class JetPackEnv(gym.Env):
             obstacle.append([obstacle[0][0]-2, obstacle[0][1]+1])
         elif (type == 3):
             obstacle.append(
-                [self.np_random.integers(0, len(self.hall)-2), len(self.hall[1])-2])
+                [self.np_random.integers(0, len(self.hall)-2), len(self.hall[1])-3])
             obstacle.append([obstacle[0][0]+1, obstacle[0][1]+1])
             obstacle.append([obstacle[0][0]+2, obstacle[0][1]+2])
             obstacle.append([obstacle[0][0]-1, obstacle[0][1]+2])
