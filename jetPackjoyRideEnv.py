@@ -33,9 +33,9 @@ class JetPackEnv(gym.Env):
         coin_high = np.array([high, high, high,
                               high, high, high,
                               high, high, high])
-        obstacle_low = np.array([low, low, low])
+        obstacle_low = np.array([low, low, low, low, low, low, low])
         obstacle_high = np.array(
-            [high, [high[0], high[1] + 1], [high[0], high[1] + 2]])
+            [high, [high[0], high[1] + 1], [high[0], high[1] + 2], high, high, high, high])
 
         # initially only one coin and obstacle eventually more
         # TODO add pixel observation space
@@ -48,9 +48,9 @@ class JetPackEnv(gym.Env):
                 "coin3": spaces.Box(coin_low,  coin_high, shape=(9, 2), dtype=int),
                 # obstacle should actually take up 3 units
                 # TODO add 3 obstacles can also just be in the dictionary
-                "obstacle1": spaces.Box(obstacle_low, obstacle_high, shape=(3, 2), dtype=int),
-                "obstacle2": spaces.Box(obstacle_low, obstacle_high, shape=(3, 2), dtype=int),
-                "obstacle3": spaces.Box(obstacle_low, obstacle_high, shape=(3, 2), dtype=int),
+                "obstacle1": spaces.Box(obstacle_low, obstacle_high, shape=(7, 2), dtype=int),
+                "obstacle2": spaces.Box(obstacle_low, obstacle_high, shape=(7, 2), dtype=int),
+                "obstacle3": spaces.Box(obstacle_low, obstacle_high, shape=(7, 2), dtype=int),
 
             }
         )
@@ -154,9 +154,13 @@ class JetPackEnv(gym.Env):
 
         # draw obstacles
         for obstacle in self.obstacles:
+            i = 0
             for block in obstacle:
+                i += 1
                 pygame.draw.rect(self.screen, (0, 0, 0), (
                     block[1] * self.cell_size, block[0] * self.cell_size, self.cell_size, self.cell_size))
+                if (i > 2):
+                    break
 
         # draw berry w sprite
         self.screen.blit(self.sprite_sheet_image,
@@ -289,20 +293,36 @@ class JetPackEnv(gym.Env):
                 [self.np_random.integers(0, len(self.hall)), len(self.hall[1])-1])
             obstacle.append([obstacle[0][0], obstacle[0][1] + 1])
             obstacle.append([obstacle[0][0], obstacle[0][1] + 2])
+            obstacle.append([obstacle[0][0], obstacle[0][1]])
+            obstacle.append([obstacle[0][0], obstacle[0][1]])
+            obstacle.append([obstacle[0][0], obstacle[0][1]])
+            obstacle.append([obstacle[0][0], obstacle[0][1]])
         elif (type == 1):
             obstacle.append(
                 [self.np_random.integers(1, len(self.hall)-1), len(self.hall[1])-1])
             obstacle.append([obstacle[0][0]-1, obstacle[0][1]])
             obstacle.append([obstacle[0][0]+1, obstacle[0][1]])
+            obstacle.append([obstacle[0][0], obstacle[0][1]])
+            obstacle.append([obstacle[0][0], obstacle[0][1]])
+            obstacle.append([obstacle[0][0], obstacle[0][1]])
+            obstacle.append([obstacle[0][0], obstacle[0][1]])
         elif (type == 2):
             obstacle.append(
                 [self.np_random.integers(0, len(self.hall)), len(self.hall[1])-2])
             obstacle.append([obstacle[0][0]-1, obstacle[0][1]+1])
             obstacle.append([obstacle[0][0]-2, obstacle[0][1]+2])
+            obstacle.append([obstacle[0][0]-1, obstacle[0][1]+2])
+            obstacle.append([obstacle[0][0], obstacle[0][1]+1])
+            obstacle.append([obstacle[0][0]-1, obstacle[0][1]])
+            obstacle.append([obstacle[0][0]-2, obstacle[0][1]+1])
         elif (type == 3):
             obstacle.append(
                 [self.np_random.integers(0, len(self.hall)-2), len(self.hall[1])-2])
             obstacle.append([obstacle[0][0]+1, obstacle[0][1]+1])
             obstacle.append([obstacle[0][0]+2, obstacle[0][1]+2])
+            obstacle.append([obstacle[0][0]-1, obstacle[0][1]+2])
+            obstacle.append([obstacle[0][0], obstacle[0][1]+1])
+            obstacle.append([obstacle[0][0]-1, obstacle[0][1]])
+            obstacle.append([obstacle[0][0]-2, obstacle[0][1]+1])
 
         return obstacle
