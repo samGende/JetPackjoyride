@@ -43,10 +43,15 @@ class JetPackEnv(gym.Env):
             {
                 "barry": spaces.Box(low, high, dtype=int),
                 # TODO add 3 coins or more can just be in the dictionary
-                "coin": spaces.Box(coin_low,  coin_high, shape=(9, 2), dtype=int),
+                "coin1": spaces.Box(coin_low,  coin_high, shape=(9, 2), dtype=int),
+                "coin2": spaces.Box(coin_low,  coin_high, shape=(9, 2), dtype=int),
+                "coin3": spaces.Box(coin_low,  coin_high, shape=(9, 2), dtype=int),
                 # obstacle should actually take up 3 units
                 # TODO add 3 obstacles can also just be in the dictionary
-                "obstacle": spaces.Box(obstacle_low, obstacle_high, shape=(3, 2), dtype=int)
+                "obstacle1": spaces.Box(obstacle_low, obstacle_high, shape=(3, 2), dtype=int),
+                "obstacle2": spaces.Box(obstacle_low, obstacle_high, shape=(3, 2), dtype=int),
+                "obstacle3": spaces.Box(obstacle_low, obstacle_high, shape=(3, 2), dtype=int),
+
             }
         )
         # 0= jetpack off 1 = jetpack on
@@ -178,6 +183,16 @@ class JetPackEnv(gym.Env):
             if (np.array_equiv(self.current_barry_pos, block)):
                 reward = -5
                 done = True
+        if (len(self.obstacles) > 1):
+            for block in self.obstacles[1]:
+                if (np.array_equiv(self.current_barry_pos, block)):
+                    reward = -5
+                    done = True
+        if (len(self.obstacles) > 2):
+            for block in self.obstacles[2]:
+                if (np.array_equiv(self.current_barry_pos, block)):
+                    reward = -5
+                    done = True
         if (self.distance_traveled > self.distance_limit):
             done = True
             print("max distance traveled")
@@ -238,9 +253,30 @@ class JetPackEnv(gym.Env):
         return True
 
     def _get_obs(self):
+        addCoin = False
+        addObs = False
+        if (len(self.coins) < 3):
+            self.coins.append(self.gen_coin())
+            self.coins.append(self.gen_coin())
+            addCoin = True
+        if (len(self.obstacles) < 3):
+            self.obstacles.append(self._gen_obstacle())
+            self.obstacles.append(self._gen_obstacle())
+            addObs = True
         obs = {"barry": np.array(self.current_barry_pos, dtype=int),
-               "coin": np.array(self.coins[0], dtype=int),
-               "obstacle": np.array(self.obstacle_pos, dtype=int)}
+               "coin1": np.array(self.coins[0], dtype=int),
+               "coin2": np.array(self.coins[1], dtype=int),
+               "coin3": np.array(self.coins[2], dtype=int),
+               "obstacle1": np.array(self.obstacles[0], dtype=int),
+               "obstacle2": np.array(self.obstacles[1], dtype=int),
+               "obstacle3": np.array(self.obstacles[2], dtype=int),
+               }
+        if (addCoin):
+            self.coins.pop()
+            self.coins.pop()
+        if (addObs):
+            self.obstacles.pop()
+            self.obstacles.pop()
         return obs
 
     def _gen_obstacle(self):
